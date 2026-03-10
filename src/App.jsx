@@ -21,6 +21,7 @@ export default function App() {
   const mountRef = useRef(null);
   const [satCount, setSatCount] = useState(0);
   const [utcTime, setUtcTime] = useState("");
+  const [selectedSat, setSelectedSat] = useState(null);
 
   useEffect(() => {
 
@@ -110,7 +111,9 @@ export default function App() {
       setSatCount(data.length);
 
       const satrecs = [];
+      const satNames = [];
       data.forEach((sat) => {
+        satNames.push(sat.name);
         try {
           satrecs.push(satellite.twoline2satrec(sat.TLE_LINE1, sat.TLE_LINE2));
         } catch (e) {
@@ -132,7 +135,7 @@ export default function App() {
         alphaTest: 0.5, // cuts off the corners so only the circle shows
       });
 
-      const satelliteMesh = new THREE.Points(satGeometry, satMaterial);
+      satelliteMesh = new THREE.Points(satGeometry, satMaterial);
       satelliteMesh.renderOrder = 999;
       scene.add(satelliteMesh);
 
@@ -160,8 +163,43 @@ export default function App() {
 
       updatePositions();
       updateInterval = setInterval(updatePositions, 1000);
+
+      // raycaster detects which satellite the user clicked on
+      // it lives inside plotSatellites so it has access to satrecs and satNames
+      const raycaster = new THREE.Raycaster();
+      raycaster.params.Points.threshold = 0.02;
+      const mouse = new THREE.Vector2();
+
+      const handleClick = (event) => {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        if (!satelliteMesh) return;
+        const intersects = raycaster.intersectObject(satelliteMesh);
+        if (intersects.length > 0) {
+          const idx = intersects[0].index;
+          const satrec = satrecs[idx];
+          if (!satrec) return;
+          const now = new Date();
+          const pv = satellite.propagate(satrec, now);
+          const gmst = satellite.gstime(now);
+          const gd = satellite.eciToGeodetic(pv.position, gmst);
+          const vel = pv.velocity;
+          const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2);
+          setSelectedSat({
+            name: satNames[idx],
+            altitude: (gd.height).toFixed(1),
+            lat: (satellite.degreesLat(gd.latitude)).toFixed(2),
+            lon: (satellite.degreesLong(gd.longitude)).toFixed(2),
+            speed: speed.toFixed(2),
+          });
+        }
+      };
+
+      mountRef.current.addEventListener("click", handleClick);
     };
 
+    let satelliteMesh;
     plotSatellites();
 
     // ── Clock ─────────────────────────────────────────────────
@@ -201,6 +239,7 @@ export default function App() {
     return () => {
       cancelAnimationFrame(animationId);
       clearInterval(updateInterval);
+      mountRef.current?.removeEventListener("click", handleClick);
       clearInterval(clockInterval);
       window.removeEventListener("resize", handleResize);
       controls.dispose();
@@ -231,6 +270,40 @@ export default function App() {
         <div>DATA SOURCE: <span style={{ color: "#ffffff" }}>CELESTRAK</span></div>
         <div>STATUS: <span style={{ color: "#00ff88" }}>● LIVE</span></div>
       </div>
+
+      {/* satellite info panel — appears at bottom left when a satellite is clicked */}
+      {selectedSat && (
+        <div style={{
+          position: "absolute",
+          bottom: "20px",
+          left: "20px",
+          color: "#00ff88",
+          fontFamily: "monospace",
+          fontSize: "13px",
+          background: "rgba(0,0,0,0.7)",
+          padding: "16px",
+          borderRadius: "8px",
+          border: "1px solid #00ff8844",
+          lineHeight: "2",
+          minWidth: "220px",
+        }}>
+          <div style={{ fontSize: "15px", fontWeight: "bold", marginBottom: "8px", color: "#ffffff" }}>
+            {selectedSat.name}
+          </div>
+          <div>ALTITUDE: <span style={{ color: "#ffffff" }}>{selectedSat.altitude} km</span></div>
+          <div>LATITUDE: <span style={{ color: "#ffffff" }}>{selectedSat.lat}°</span></div>
+          <div>LONGITUDE: <span style={{ color: "#ffffff" }}>{selectedSat.lon}°</span></div>
+          <div>SPEED: <span style={{ color: "#ffffff" }}>{selectedSat.speed} km/s</span></div>
+          <div
+            style={{ marginTop: "8px", fontSize: "11px", color: "#666", cursor: "pointer" }}
+            onClick={() => setSelectedSat(null)}
+            onMouseEnter={e => e.target.style.color = "#ff4444"}
+            onMouseLeave={e => e.target.style.color = "#666"}
+          >
+            ✕ close
+          </div>
+        </div>
+      )}
     </div>
   );
 }
