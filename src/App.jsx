@@ -43,11 +43,13 @@ export default function App() {
     // ── Space background ─────────────────────────────────────
     // real milky way image mapped to the inside of a giant sphere
     const textureLoader = new THREE.TextureLoader();
-    const spaceTexture = textureLoader.load("/space.jpg");
+    const spaceTexture = textureLoader.load("/joe_mama.jpg");
     const spaceGeometry = new THREE.SphereGeometry(500, 32, 32);
     const spaceMaterial = new THREE.MeshBasicMaterial({
       map: spaceTexture,
-      side: THREE.BackSide, // render on the inside of the sphere
+      side: THREE.BackSide,
+      opacity: 0.1,
+      transparent: true,
     });
     const spaceSphere = new THREE.Mesh(spaceGeometry, spaceMaterial);
     scene.add(spaceSphere);
@@ -55,10 +57,18 @@ export default function App() {
     // ── Earth ─────────────────────────────────────────────────
     // natural earth style texture with country borders and clear land/water
     const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
-    const earthTexture = textureLoader.load(
-      "https://unpkg.com/three-globe/example/img/earth-night.jpg"
-    );
-    const earthMaterial = new THREE.MeshPhongMaterial({ map: earthTexture });
+    const earthTexture = textureLoader.load("/earth_base_image.jpg");
+    const earthLightsTexture = textureLoader.load("/background_lights.png");
+
+    const earthMaterial = new THREE.MeshPhongMaterial({
+      map: earthTexture,
+      emissiveMap: earthLightsTexture,
+      emissive: new THREE.Color(0xfff1b3),
+      emissiveIntensity: 7,
+      transparent: true,
+      opacity: 1,
+      });
+
     const earth = new THREE.Mesh(earthGeometry, earthMaterial);
     scene.add(earth);
 
