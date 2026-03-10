@@ -3,6 +3,20 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import * as satellite from "satellite.js";
 
+// draws a white circle on a canvas and returns it as a Three.js texture
+// this makes satellite dots render as circles instead of squares
+function createCircleTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext("2d");
+  ctx.beginPath();
+  ctx.arc(32, 32, 30, 0, 2 * Math.PI);
+  ctx.fillStyle = "white";
+  ctx.fill();
+  return new THREE.CanvasTexture(canvas);
+}
+
 export default function App() {
   const mountRef = useRef(null);
   const [satCount, setSatCount] = useState(0);
@@ -10,49 +24,45 @@ export default function App() {
 
   useEffect(() => {
 
-    // empty stage where we gonna put earth, stars, satellites, etc
     const scene = new THREE.Scene();
 
-    // camera looking at scene
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 0, 2.5);
 
-    // renderer which is drawing the scene
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     mountRef.current.appendChild(renderer.domElement);
 
-    // controls to allow user to rotate and zoom the camera around the scene with mouse
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.minDistance = 1.3;
     controls.maxDistance = 10;
 
-    // makes 8000 random points in the background of the screen
-    const starGeometry = new THREE.BufferGeometry();
-    const starCount = 8000;
-    const starPositions = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount * 3; i++) {
-      starPositions[i] = (Math.random() - 0.5) * 2000;
-    }
-    starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3 });
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
-
-    // wrapping an earth texture around the sphere to make the globe
-    const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
+    // ── Space background ─────────────────────────────────────
+    // real milky way image mapped to the inside of a giant sphere
     const textureLoader = new THREE.TextureLoader();
+    const spaceTexture = textureLoader.load("/space.jpg");
+    const spaceGeometry = new THREE.SphereGeometry(500, 32, 32);
+    const spaceMaterial = new THREE.MeshBasicMaterial({
+      map: spaceTexture,
+      side: THREE.BackSide, // render on the inside of the sphere
+    });
+    const spaceSphere = new THREE.Mesh(spaceGeometry, spaceMaterial);
+    scene.add(spaceSphere);
+
+    // ── Earth ─────────────────────────────────────────────────
+    // natural earth style texture with country borders and clear land/water
+    const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
     const earthTexture = textureLoader.load(
-      "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+      "https://unpkg.com/three-globe/example/img/earth-night.jpg"
     );
     const earthMaterial = new THREE.MeshPhongMaterial({ map: earthTexture });
     const earth = new THREE.Mesh(earthGeometry, earthMaterial);
     scene.add(earth);
 
-    // slightly larger sphere which is transparent and tinted blue to give illusion of atmosphere
+    // ── Atmosphere ────────────────────────────────────────────
     const atmosGeometry = new THREE.SphereGeometry(1.02, 64, 64);
     const atmosMaterial = new THREE.MeshPhongMaterial({
       color: 0x4488ff,
@@ -63,16 +73,14 @@ export default function App() {
     const atmosphere = new THREE.Mesh(atmosGeometry, atmosMaterial);
     scene.add(atmosphere);
 
-    // soft light that illuminates everything so no shadows
+    // ── Lighting ──────────────────────────────────────────────
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
     scene.add(ambientLight);
-
-    // single point light to simulate the sun
     const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
     sunLight.position.set(5, 3, 5);
     scene.add(sunLight);
 
-    // fetch live TLE data from CelesTrak and plot satellites on the globe
+    // ── Satellites ────────────────────────────────────────────
     let updateInterval;
     const plotSatellites = async () => {
       const response = await fetch(
@@ -89,36 +97,35 @@ export default function App() {
         });
       }
 
-      // update the satellite count in the UI
       setSatCount(data.length);
 
-      // parse each TLE once and store the result so we dont re-parse every second
       const satrecs = [];
       data.forEach((sat) => {
         try {
-          const satrec = satellite.twoline2satrec(sat.TLE_LINE1, sat.TLE_LINE2);
-          satrecs.push(satrec);
+          satrecs.push(satellite.twoline2satrec(sat.TLE_LINE1, sat.TLE_LINE2));
         } catch (e) {
           satrecs.push(null);
         }
       });
 
-      // create the points buffer once — we reuse this every update
       const satGeometry = new THREE.BufferGeometry();
       const positions = new Float32Array(satrecs.length * 3);
       satGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
+      // use our circle canvas texture so dots are round not square
       const satMaterial = new THREE.PointsMaterial({
         color: 0x00ff88,
         size: 0.005,
         sizeAttenuation: true,
+        map: createCircleTexture(),
+        transparent: true,
+        alphaTest: 0.5, // cuts off the corners so only the circle shows
       });
 
       const satelliteMesh = new THREE.Points(satGeometry, satMaterial);
       satelliteMesh.renderOrder = 999;
       scene.add(satelliteMesh);
 
-      // compute where every satellite is right now and update the buffer
       const updatePositions = () => {
         const now = new Date();
         const gmst = satellite.gstime(now);
@@ -138,32 +145,29 @@ export default function App() {
             positions[i * 3 + 2] = radius * Math.cos(lat) * Math.sin(lon);
           } catch (e) {}
         });
-        // tell Three.js the buffer changed so it redraws the dots
         satGeometry.attributes.position.needsUpdate = true;
       };
 
-      // run immediately then every second
       updatePositions();
       updateInterval = setInterval(updatePositions, 1000);
     };
 
     plotSatellites();
 
-    // live UTC clock updated every second
+    // ── Clock ─────────────────────────────────────────────────
     const clockInterval = setInterval(() => {
       setUtcTime(new Date().toUTCString().slice(17, 25));
     }, 1000);
 
-    // track mouse dragging to pause auto-rotation
+    // ── Mouse drag tracking ───────────────────────────────────
     let isDragging = false;
     mountRef.current.addEventListener("mousedown", () => isDragging = true);
     mountRef.current.addEventListener("mouseup", () => isDragging = false);
 
-    // animating the globe to rotate slowly and render the scene on each frame
+    // ── Animation loop ────────────────────────────────────────
     let animationId;
     const animate = () => {
       animationId = requestAnimationFrame(animate);
-      // real Earth rotation speed — one full rotation every 24 hours
       const earthRotationSpeed = (2 * Math.PI) / (24 * 60 * 60);
       const delta = 1 / 60;
       if (!isDragging) {
@@ -175,7 +179,7 @@ export default function App() {
     };
     animate();
 
-    // handles window resizing
+    // ── Resize handler ────────────────────────────────────────
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -183,7 +187,7 @@ export default function App() {
     };
     window.addEventListener("resize", handleResize);
 
-    // cleanup
+    // ── Cleanup ───────────────────────────────────────────────
     return () => {
       cancelAnimationFrame(animationId);
       clearInterval(updateInterval);
