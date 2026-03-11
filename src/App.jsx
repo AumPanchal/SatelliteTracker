@@ -508,7 +508,7 @@ export default function App() {
         position: "absolute", top: "20px", left: "20px",
         color: "#D224FF", fontFamily: "monospace", fontSize: "13px",
         background: "rgba(0,0,0,0.6)", padding: "16px",
-        borderRadius: "8px", border: "1px solid #00ff8844", lineHeight: "2",
+        borderRadius: "8px", border: "1px solid #D224FF", lineHeight: "2",
       }}>
         <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "8px" }}>ॐ SATELLITE TRACKER </div>
         <div>OBJECTS IN ORBIT: <span style={{ color: "#fff" }}>{satCount.toLocaleString()}</span></div>
@@ -532,7 +532,7 @@ export default function App() {
             onClick={toggleAll}
             style={{
               fontSize: "10px", color: allOn ? "#ff4444" : "#D224FF",
-              cursor: "pointer", border: `1px solid ${allOn ? "#ff444444" : "#00ff8844"}`,
+              cursor: "pointer", border: `1px solid ${allOn ? "#ff444444" : "#D224FF"}`,
               padding: "2px 7px", borderRadius: "4px", letterSpacing: "0.05em",
             }}
           >{allOn ? "ALL OFF" : "ALL ON"}</div>
@@ -607,7 +607,7 @@ export default function App() {
           style={{
             width: "40px", height: "40px", borderRadius: "8px",
             background: searchOpen ? "rgba(0,255,136,0.15)" : "rgba(0,0,0,0.6)",
-            border: "1px solid #00ff8844", display: "flex",
+            border: "1px solid #D224FF", display: "flex",
             alignItems: "center", justifyContent: "center",
             cursor: "pointer", fontSize: "18px", transition: "background 0.2s",
           }}
@@ -643,7 +643,7 @@ export default function App() {
                 }
               }}
               style={{
-                background: "rgba(255,255,255,0.05)", border: "1px solid #00ff8844",
+                background: "rgba(255,255,255,0.05)", border: "1px solid #D224FF",
                 borderRadius: "4px", color: "#fff", fontFamily: "monospace",
                 fontSize: "12px", padding: "8px", outline: "none",
                 width: "100%", boxSizing: "border-box", marginBottom: "10px",
