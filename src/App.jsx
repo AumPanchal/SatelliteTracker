@@ -624,11 +624,11 @@ export default function App() {
           width: "260px",
         }}>
           <div style={{
-            background: "rgba(0,0,0,0.75)", border: "1px solid #00ff8822",
+            background: "rgba(0,0,0,0.75)", border: "1px solid #D224FF",
             borderRadius: "8px", padding: "16px", display: "flex",
             flexDirection: "column", maxHeight: "560px", boxSizing: "border-box",
           }}>
-            <div style={{ fontSize: "13px", color: "#00ff88", fontWeight: "bold", marginBottom: "10px" }}>
+            <div style={{ fontSize: "13px", color: "#D224FF", fontWeight: "bold", marginBottom: "10px" }}>
               SEARCH SATELLITES
             </div>
             <input
