@@ -239,7 +239,7 @@ export default function App() {
       updateColorsFnRef.current = updateColors;
 
       const satMaterial = new THREE.PointsMaterial({
-        size: 0.005,
+        size: 0.01,
         sizeAttenuation: true,
         map: createCircleTexture(),
         transparent: true,
