@@ -473,7 +473,7 @@ export default function App() {
       }
       if (hlMesh.visible) {
         const t = Date.now() / 400;
-        hlMat.size = 0.018 + Math.sin(t) * 0.009;
+        hlMat.size = 0.018 + Math.abs(Math.sin(t)) * 0.012;
       }
       controls.update();
       renderer.render(scene, camera);
