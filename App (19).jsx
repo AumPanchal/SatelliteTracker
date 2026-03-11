@@ -512,7 +512,7 @@ export default function App() {
         background: "rgba(0,0,0,0.6)", padding: "16px",
         borderRadius: "8px", border: "1px solid #00ff8844", lineHeight: "2",
       }}>
-        <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "8px" }}>ॐ SATELLITE TRACKER </div>
+        <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "8px" }}>🛰 SATELLITE TRACKER</div>
         <div>OBJECTS IN ORBIT: <span style={{ color: "#fff" }}>{satCount.toLocaleString()}</span></div>
         <div>UTC TIME: <span style={{ color: "#fff" }}>{utcTime}</span></div>
         <div>DATA SOURCE: <span style={{ color: "#fff" }}>CELESTRAK</span></div>
@@ -529,7 +529,7 @@ export default function App() {
         minWidth: "170px",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-          <div style={{ fontSize: "12px", color: "#888", letterSpacing: "0.08em" }}>FILTER</div>
+          <div style={{ fontSize: "12px", color: "#888", letterSpacing: "0.08em" }}>FILTER BY TYPE</div>
           <div
             onClick={toggleAll}
             style={{
@@ -615,7 +615,7 @@ export default function App() {
           }}
           onMouseEnter={e => e.currentTarget.style.background = "rgba(0,255,136,0.2)"}
           onMouseLeave={e => e.currentTarget.style.background = searchOpen ? "rgba(0,255,136,0.15)" : "rgba(0,0,0,0.6)"}
-        ><img src="/search_icon.png" alt="search" style={{ width: "22px", height: "22px", objectFit: "contain" }} /></div>
+        ><img src="/search-icon.png" alt="search" style={{ width: "22px", height: "22px", objectFit: "contain" }} /></div>
 
         <div style={{
           overflow: "hidden",
