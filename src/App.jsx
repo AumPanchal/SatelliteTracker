@@ -294,6 +294,13 @@ export default function App() {
         hlPos[1] = positions[idx*3+1];
         hlPos[2] = positions[idx*3+2];
         hlGeo.attributes.position.needsUpdate = true;
+      
+        // set the pulse dot color to match the satellite's category color
+        const cat = satCategories[idx];
+        const catDef = CATEGORIES.find(c => c.key === cat);
+        const [r, g, b] = catDef ? catDef.color : [0, 1, 0.53];
+        hlMat.color.setRGB(r, g, b);
+      
         hlMesh.visible = true;
         zoomToSat(positions[idx*3], positions[idx*3+1], positions[idx*3+2]);
       };
@@ -473,7 +480,7 @@ export default function App() {
       }
       if (hlMesh.visible) {
         const t = Date.now() / 400;
-        hlMat.size = 0.018 + Math.abs(Math.sin(t)) * 0.012;
+        hlMat.size = 0.018 + Math.abs(Math.sin(t)) * 0.007;
       }
       controls.update();
       renderer.render(scene, camera);
