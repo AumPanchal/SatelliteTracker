@@ -182,7 +182,7 @@ export default function App() {
     let satelliteMesh;
 
     const plotSatellites = async () => {
-      const response = await fetch("https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle")
+      const response = await fetch("/api/tle");
       const text = await response.text();
       const lines = text.trim().split("\n");
       const data = [];
