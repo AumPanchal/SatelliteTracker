@@ -1,5 +1,5 @@
 # SatelliteTracker
 
-Real-time 3D satellite tracking application visualizing 8,000+ objects in Earth orbit. Built with React, Three.js & WebGL. Uses live TLE data from CelesTrak + SGP4 orbital propagation to compute live positions. Features an interactive globe with atmospheric rendering and a full mission-control UI.
+Real-time 3D satellite tracker visualizing 14,683+ live objects in Earth orbit. Built with React, Three.js & WebGL. Pulls live TLE data from CelesTrak, uses SGP4 orbital propagation to compute positions at 60fps, and features category filtering across 13 object types, satellite search, click-to-select telemetry, and an animated globe with atmospheric rendering.
 
 Link: https://aum-satellite-tracker.vercel.app
